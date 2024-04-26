@@ -51,11 +51,62 @@ class AuthorMutation(graphene.Mutation):
         author= Author(name=name)
         author.save()
         return AuthorMutation(author=author)
+
+class UpdateAuthor(graphene.Mutation):
+    class Arguments:
+        id= graphene.ID()
+        name= graphene.String(required= True)
+    author= graphene.Field(AuthorType)
+
+    @classmethod
+    def mutate(cls, root, info, name, id):
+        author= Author.objects.get(pk=id)
+        author.name= name
+        author.save()
+        return AuthorMutation(author=author)
+    
+
+class UpdateMutation(graphene.Mutation):
+    class Arguments:
+        id= graphene.ID()
+        title= graphene.String()
+        content= graphene.String()
+        author= graphene.Int()
+    post= graphene.Field(Posttype)
+
+    @classmethod
+    def mutate(cls, root, info,id, title=None, content=None, author=None):
+        post= Post.objects.get(pk=id)
+        if title:
+            post.title= title
+        if content:
+            post.content= content
+        if author:
+            post.author= author
+        post.save()
+        return UpdateMutation(post=post)
+    
+class DeleteAuthor(graphene.Mutation):
+    author= graphene.Field(AuthorType)
+    class Arguments:
+        id= graphene.ID()
+
+    @classmethod
+    def mutate(cls, root, int, id):
+        author= Author.objects.get(pk=id)
+        author.delete()
+        return DeleteAuthor(author=author)
+    
+
     
 # now to manupulate the data to the database create, update and delete i.e mutation class
 class mutation(graphene.ObjectType):
     Post= PostMutation.Field()
+    UpdatePost= UpdateMutation.Field()
     Author= AuthorMutation.Field()
+    UpdateAuthor=UpdateAuthor.Field()
+    DeleteAuthor =DeleteAuthor.Field()
+
 
 schema = graphene.Schema(query=Query, mutation=mutation)
 
